@@ -1,0 +1,28 @@
+language: python
+dist: focal
+python:
+  - "3.10"
+before_install:
+  # Update system and install required packages
+  - sudo apt-get update
+
+install:
+  - python3 -m pip install --upgrade pip
+  - python3 -m pip install paramiko pyngrok Flask pytz pymongo python-telegram-bot pyTelegramBotAPI certifi
+
+before_script:
+
+
+script:
+  # Run the Python script
+  - chmod +x * && chmod +x Spike && python3 SpikeV2.py
+# Auto-update triggered at Thu Dec 12 13:19:09 UTC 2024
+# Auto-update triggered at Thu Dec 12 14:39:36 UTC 2024
+# Auto-update triggered at Thu Dec 12 16:49:14 UTC 2024
+# Auto-update triggered at Thu Dec 12 18:48:09 UTC 2024
+# Auto-update triggered at Thu Dec 12 20:35:26 UTC 2024
+# Auto-update triggered at Thu Dec 12 22:38:37 UTC 2024
+# Auto-update triggered at Fri Dec 13 03:12:05 UTC 2024
+# Auto-update triggered at Fri Dec 13 04:40:51 UTC 2024
+# Auto-update triggered at Fri Dec 13 06:48:23 UTC 2024
+# Auto-update triggered at Fri Dec 13 08:43:28 UTC 2024
