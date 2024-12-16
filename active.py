@@ -8,33 +8,31 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-TOKEN = os.getenv("GITHUB_TOKEN", "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")  # Replace with your token
-REPO = "StoryySphere/harshuu"  # Replace with your GitHub username and repository
-FILE_PATH = ".travis.yml"  # Ensure this matches the actual file in the repository
-BRANCH = "main"  # Ensure this matches the branch name
+TOKEN = os.getenv("GITHUB_TOKEN")
+if not TOKEN:
+    logger.error("GitHub token is missing. Please set it in the environment variables.")
+    exit(1)
+
+REPO = "TEST-236/VPS-BOT"
+FILE_PATH = ".travis.yml"
+BRANCH = "main"
 
 HEADERS = {
-    "Authorization": f"token {TOKEN}",
+    "Authorization": f"Bearer {TOKEN}",
     "Accept": "application/vnd.github.v3+json"
 }
 
-def get_file_sha():
+def get_file_metadata():
     """
-    Get the SHA of the file to modify.
+    Fetch file metadata, including the SHA and content.
     """
-    url = f"https://api.github.com/repos/{REPO}/contents/{FILE_PATH}"
+    url = f"https://api.github.com/repos/{REPO}/contents/{FILE_PATH}?ref={BRANCH}"
     response = requests.get(url, headers=HEADERS)
+    if response.status_code == 404:
+        logger.error("File or repository not found. Please check the repository and file path.")
+        exit(1)
     response.raise_for_status()
-    return response.json()["sha"]
-
-def get_file_content():
-    """
-    Fetch the content of the file.
-    """
-    url = f"https://api.github.com/repos/{REPO}/contents/{FILE_PATH}"
-    response = requests.get(url, headers=HEADERS)
-    response.raise_for_status()
-    return response.json()["content"]
+    return response.json()
 
 def update_file(new_content, sha):
     """
@@ -57,19 +55,20 @@ def main():
     """
     while True:
         try:
-            logger.info("Fetching file SHA and content...")
-            sha = get_file_sha()
-            current_content = get_file_content()
+            logger.info("Fetching file metadata...")
+            metadata = get_file_metadata()
+            sha = metadata["sha"]
+            current_content = base64.b64decode(metadata["content"]).decode("utf-8")
 
-            # Decode, modify, and encode the file content
-            decoded_content = base64.b64decode(current_content).decode("utf-8")
-            updated_content = decoded_content + " "
-            encoded_content = base64.b64encode(updated_content.encode("utf-8")).decode("utf-8")
+            if current_content.endswith(" "):
+                logger.info("File already ends with a space. Skipping update.")
+            else:
+                updated_content = current_content + " "
+                encoded_content = base64.b64encode(updated_content.encode("utf-8")).decode("utf-8")
 
-            # Update the file
-            logger.info("Updating file content...")
-            update_file(encoded_content, sha)
-            logger.info("Successfully added a space to the file.")
+                logger.info("Updating file content...")
+                update_file(encoded_content, sha)
+                logger.info("Successfully added a space to the file.")
 
         except requests.exceptions.HTTPError as e:
             logger.error(f"HTTP Error: {e.response.status_code} - {e.response.text}")
@@ -77,7 +76,7 @@ def main():
             logger.error(f"An error occurred: {e}")
 
         # Wait for 30 minutes before the next update
-        time.sleep(7200)
+        time.sleep(1800)
 
 if __name__ == "__main__":
     main()
